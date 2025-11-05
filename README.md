@@ -4,6 +4,9 @@ This is the single page application created using react + vite and bootstrap. Th
 
 ![profile-app-screenshot](profiles-app-ss.png)
 
+![Deploy](https://github.com/vaishnvi-bachhav/profiles-app/actions/workflows/deploy.yml/badge.svg)
+
+
 ## Commit link
 
 https://github.com/vaishnavi-bachhav/profiles-app/commit/be3b9f9d0d325015c3fc88925bc6db980dbf8ac2
