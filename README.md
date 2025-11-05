@@ -2,6 +2,8 @@
 
 This is the single page application created using react + vite and bootstrap. The page display's Hello React.
 
+![profile-app-screenshot](profiles-app-ss.png)
+
 ## Commit link
 
 https://github.com/vaishnavi-bachhav/profiles-app/commit/be3b9f9d0d325015c3fc88925bc6db980dbf8ac2
