@@ -7,20 +7,48 @@ import Form from 'react-bootstrap/Form';
 import ProfileCard from './components/ProfileCard.jsx';
 import { profiles } from './data/profiles.js';
 import { useState } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
 
 export default function App() {
+  // -----------------------------
+  // State Management
+  // -----------------------------
   const [people, setPeople] = useState(profiles);
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({});
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
 
-  // Increment likes for a profile
-  const likePeople = (id) => {
+  // -----------------------------
+  // DataGrid Columns
+  // -----------------------------
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 90 },
+    { field: 'name', headerName: 'Name', width: 150 },
+    { field: 'likes', headerName: 'Likes', width: 120 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: () => (
+        <>
+          <Button variant="outline-primary" size="sm" className="me-2">Edit</Button>
+          <Button variant="outline-danger" size="sm" className="me-2">Delete</Button>
+        </>
+      )
+    }
+  ];
+
+  // -----------------------------
+  //  Like Button Logic
+  //  -----------------------------
+  const handleLike = (id) => {
     setPeople(ps => ps.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
   }
 
+  // -----------------------------
+  // Form Validation
+  // -----------------------------
   const validateForm = (form) => {
     const formData = new FormData(form);
     const currentName = formData.get("name").trim();
@@ -37,31 +65,35 @@ export default function App() {
     return Object.keys(newErrors).length === 0;
   }
 
+  // -----------------------------
+  // Form Submission
+  // -----------------------------
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const form = e.target;
-    const formIsValid = validateForm(form);
-    if (formIsValid) {
-      const newProfile = {
-        id: people.length ? Math.max(...people.map(p => p.id)) + 1 : 1,
-        name: name,
-        likes: 0
-      };
-      setPeople(ps => [...ps, newProfile]);
-      setName('');
-      setErrors({});
-      form.reset();
-      handleClose();
-    }
+    if (!validateForm(form)) return;
+
+    const newProfile = {
+      id: people.length ? Math.max(...people.map(p => p.id)) + 1 : 1,
+      name: name,
+      likes: 0
+    };
+    setPeople(ps => [...ps, newProfile]);
+    setName('');
+    setErrors({});
+    form.reset();
+    handleClose();
   }
 
   return (
     <Container className="py-4">
       <h1 className="mb-4 text-center">Profiles</h1>
-      <Button variant="primary" className='' onClick={handleShow}>
+      {/* Add Profile Button */}
+      <Button variant="primary" className='' onClick={() => setShow(true)}>
         Add Profile
       </Button>
+      {/* Add Profile Modal */}
       <Modal show={show} onHide={handleClose}>
         <Form noValidate onSubmit={handleSubmit}>
           <Modal.Header closeButton>
@@ -87,10 +119,22 @@ export default function App() {
       </Modal>
 
       <hr />
+      {/* Data Grid Table */}
+      <div style={{ height: 300, width: '100%' }}>
+        <DataGrid
+          rows={people}
+          columns={columns}
+          pageSize={5}
+          loading={false}
+          pagination={false}
+        />
+      </div>
+      <hr />
+      {/* Profile Cards */}
       <Row xs={1} md={2} lg={3} className="g-3">
         {people.map(p => (
           <Col key={p.id}>
-            <ProfileCard name={p.name} likes={p.likes} onLike={() => likePeople(p.id)} />
+            <ProfileCard name={p.name} likes={p.likes} onLike={() => handleLike(p.id)} />
           </Col>
         ))}
       </Row>
