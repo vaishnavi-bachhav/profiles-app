@@ -17,23 +17,29 @@ export default function App() {
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({});
   const [show, setShow] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   const handleClose = () => setShow(false);
 
   // -----------------------------
   // DataGrid Columns
   // -----------------------------
   const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
+    { field: 'id', headerName: 'Sr No', width: 100, sortable: false, filterable: false},   
     { field: 'name', headerName: 'Name', width: 150 },
     { field: 'likes', headerName: 'Likes', width: 120 },
     {
       field: 'actions',
       headerName: 'Actions',
       width: 150,
-      renderCell: () => (
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
         <>
           <Button variant="outline-primary" size="sm" className="me-2">Edit</Button>
-          <Button variant="outline-danger" size="sm" className="me-2">Delete</Button>
+          <Button variant="outline-danger" size="sm" className="me-2" onClick={() => confirmDelete(params.row)}
+            >Delete</Button>
         </>
       )
     }
@@ -45,6 +51,20 @@ export default function App() {
   const handleLike = (id) => {
     setPeople(ps => ps.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
   }
+  
+  // -----------------------------
+  // Delete Confirmation Logic
+  // -----------------------------
+  const confirmDelete = (person) => {
+    setDeleteTarget(person);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setPeople(ps => ps.filter(p => p.id !== deleteTarget.id));
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
 
   // -----------------------------
   // Form Validation
@@ -116,6 +136,24 @@ export default function App() {
             </Button>
           </Modal.Footer>
         </Form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleConfirmDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       <hr />
