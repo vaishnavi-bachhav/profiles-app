@@ -17,16 +17,27 @@ export default function App() {
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({});
   const [show, setShow] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(null); 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const handleClose = () => setShow(false);
+  // -----------------------------
+  // Utility: open/close modals
+  // -----------------------------
+  const handleClose = () => {
+    setShow(false);
+    setEditingProfile(null);
+    setErrors({});
+    setName('');
+  };
 
   // -----------------------------
   // DataGrid Columns
   // -----------------------------
+  const rowsWithSr = people.map((p, idx) => ({ ...p, srNo: idx + 1 }));
+
   const columns = [
-    { field: 'id', headerName: 'Sr No', width: 100, sortable: false, filterable: false},   
+    { field: 'srNo', headerName: 'Sr No', width: 90, sortable: false, filterable: false },
     { field: 'name', headerName: 'Name', width: 150 },
     { field: 'likes', headerName: 'Likes', width: 120 },
     {
@@ -37,7 +48,7 @@ export default function App() {
       filterable: false,
       renderCell: (params) => (
         <>
-          <Button variant="outline-primary" size="sm" className="me-2">Edit</Button>
+          <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleEdit(params.row)}>Edit</Button>
           <Button variant="outline-danger" size="sm" className="me-2" onClick={() => confirmDelete(params.row)}
             >Delete</Button>
         </>
@@ -51,6 +62,15 @@ export default function App() {
   const handleLike = (id) => {
     setPeople(ps => ps.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
   }
+
+   // -----------------------------
+  // Edit Logic
+  // -----------------------------
+  const handleEdit = (person) => {
+    setEditingProfile(person);
+    setName(person.name);
+    setShow(true);
+  };
   
   // -----------------------------
   // Delete Confirmation Logic
@@ -94,14 +114,23 @@ export default function App() {
     const form = e.target;
     if (!validateForm(form)) return;
 
-    const newProfile = {
-      id: people.length ? Math.max(...people.map(p => p.id)) + 1 : 1,
-      name: name,
-      likes: 0
-    };
-    setPeople(ps => [...ps, newProfile]);
-    setName('');
-    setErrors({});
+     if (editingProfile) {
+      // Update existing profile
+      setPeople(ps =>
+        ps.map(p =>
+          p.id === editingProfile.id ? { ...p, name: name } : p
+        )
+      );
+     } else{
+      // Add new profile
+      const newProfile = {
+        id: people.length ? Math.max(...people.map(p => p.id)) + 1 : 1,
+        name: name,
+        likes: 0
+      };
+      setPeople(ps => [...ps, newProfile]);
+     }
+
     form.reset();
     handleClose();
   }
@@ -113,14 +142,16 @@ export default function App() {
       <Button variant="primary" className='' onClick={() => setShow(true)}>
         Add Profile
       </Button>
-      {/* Add Profile Modal */}
+      {/* Add/Edit Profile Modal */}
       <Modal show={show} onHide={handleClose}>
         <Form noValidate onSubmit={handleSubmit}>
           <Modal.Header closeButton>
-            <Modal.Title>Add Profile</Modal.Title>
+            <Modal.Title> 
+              {editingProfile ? 'Edit Profile' : 'Add Profile'}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>Fill out the form below to add a new profile.</p>
+            <p>{editingProfile ? 'Update the profile name below.' : 'Fill out the form below to add a new profile.'}</p>
             <Form.Group className="mb-3" controlId="formName">
               <Form.Label className='fw-bold'>Name</Form.Label>
               <Form.Control name='name' value={name} type="text" placeholder="Enter your name" onChange={(e) => setName(e.currentTarget.value)} isInvalid={!!errors.name} />
@@ -132,7 +163,7 @@ export default function App() {
               Close
             </Button>
             <Button variant="primary" type='submit'>
-              Save Changes
+              {editingProfile ? 'Update' : 'Save'}
             </Button>
           </Modal.Footer>
         </Form>
@@ -160,7 +191,7 @@ export default function App() {
       {/* Data Grid Table */}
       <div style={{ height: 300, width: '100%' }}>
         <DataGrid
-          rows={people}
+          rows={rowsWithSr}
           columns={columns}
           pageSize={5}
           loading={false}
